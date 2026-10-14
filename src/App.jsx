@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-
-const SHEET_URL = "https://google.com";
-
+// URL directe de ton Google Sheets publié
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQT573CUIhWzhVpP1iv2u57K1INIi5CQ69a40Y--w5qQUOwhA_djHd4wlPYkCjvU3OGHelCRZXe6i4o/pubhtml";
 
 export default function App() {
   const [books, setBooks] = useState([]);
@@ -11,6 +10,7 @@ export default function App() {
   const [selectedSubCat, setSelectedSubCat] = useState('');
 
   useEffect(() => {
+    // Appel direct de l'URL propre sans variables externes
     fetch(SHEET_URL)
       .then(res => res.text())
       .then(text => {
