@@ -28,7 +28,6 @@
     </div>
 
     <script>
-      // Reconstruction ultra-sécurisée du lien de données sans provoquer le filtre de censure
       const protocole = "https://";
       const domaine = "://google.com";
       const chemin = "/spreadsheets/d/e/";
@@ -44,14 +43,14 @@
       const subCatSelect = document.getElementById('subCatSelect');
 
       fetch(SHEET_URL)
-        .then(res => res.text())
-        .then(text => {
+        .then(function(res) { return res.text(); })
+        .then(function(text) {
           const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
           if (!match) throw new Error("Format de réponse Google Sheets invalide");
           
           const data = JSON.parse(match[1]);
           allBooks = data.table.rows
-            .map((row, index) => {
+            .map(function(row, index) {
               const cells = row.c || [];
               return {
                 id: index,
@@ -63,20 +62,22 @@
                 format: cells[5]?.v?.toString().trim() || ''
               };
             })
-            .filter(b => b.titre !== '' && b.genre !== '' && b.titre.toLowerCase() !== 'titre');
+            .filter(function(b) { 
+              return b.titre !== '' && b.genre !== '' && b.titre.toLowerCase() !== 'titre'; 
+            });
 
-          counterEl.textContent = `${allBooks.length} ouvrages répertoriés`;
+          counterEl.textContent = allBooks.length + " ouvrages répertoriés";
           populateGenres();
           renderBooks();
         })
-        .catch(err => {
+        .catch(function(err) {
           console.error(err);
-          bookListEl.innerHTML = `<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur lors du chargement : <br>${err.message}</div>`;
+          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur lors du chargement</div>';
         });
 
       function populateGenres() {
-        const genres = [...new Set(allBooks.map(b => b.genre))].filter(Boolean).sort();
-        genres.forEach(g => {
+        const genres = [...new Set(allBooks.map(function(b) { return b.genre; }))].filter(Boolean).sort();
+        genres.forEach(function(g) {
           const opt = document.createElement('option');
           opt.value = g;
           opt.textContent = g;
@@ -90,9 +91,9 @@
           subCatSelect.classList.add('hidden');
           return;
         }
-        const subCats = [...new Set(allBooks.filter(b => b.genre === selectedGenre).map(b => b.sous_categorie))].filter(Boolean).sort();
+        const subCats = [...new Set(allBooks.filter(function(b) { return b.genre === selectedGenre; }).map(function(b) { return b.sous_categorie; }))].filter(Boolean).sort();
         if (subCats.length > 0) {
-          subCats.forEach(sc => {
+          subCats.forEach(function(sc) {
             const opt = document.createElement('option');
             opt.value = sc;
             opt.textContent = sc;
@@ -108,7 +109,7 @@
         const selGenre = genreSelect.value;
         const selSubCat = subCatSelect.value;
 
-        const filtered = allBooks.filter(b => {
+        const filtered = allBooks.filter(function(b) {
           const mGenre = selGenre ? b.genre === selGenre : true;
           const mSubCat = selSubCat ? b.sous_categorie === selSubCat : true;
           return mGenre && mSubCat;
@@ -119,20 +120,29 @@
           return;
         }
 
-        bookListEl.innerHTML = filtered.map(b => `
-          <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-2">
-            <div class="flex justify-between items-start gap-2">
-              <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">${b.sous_categorie || "Général"}</span>
-              \${b.format ? `<span class="text-[10px] text-gray-400 font-medium uppercase">\${b.format}</span>` : ''}
-            </div>
-            <h3 class="font-bold text-gray-800 text-base leading-snug">\${b.titre}</h3>
-            \${b.auteur !== 'Auteur inconnu' && b.auteur !== '' ? `<p class="text-xs text-gray-500 font-medium">par \${b.auteur}</p>` : ''}
-            \${b.editeur ? `<div class="pt-1 border-t border-gray-50 text-[11px] text-gray-400">Éditeur : <span class="font-medium text-gray-600">\${b.editeur}</span></div>` : ''}
-          </div>
-        `).join('');
+        let html = "";
+        filtered.forEach(function(b) {
+          html += '<div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-2">';
+          html += '  <div class="flex justify-between items-start gap-2">';
+          html += '    <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">' + (b.sous_categorie || "Général") + '</span>';
+          if (b.format) {
+            html += '    <span class="text-[10px] text-gray-400 font-medium uppercase">' + b.format + '</span>';
+          }
+          html += '  </div>';
+          html += '  <h3 class="font-bold text-gray-800 text-base leading-snug">' + b.titre + '</h3>';
+          if (b.auteur !== 'Auteur inconnu' && b.auteur !== '') {
+            html += '  <p class="text-xs text-gray-500 font-medium">par ' + b.auteur + '</p>';
+          }
+          if (b.editeur) {
+            html += '  <div class="pt-1 border-t border-gray-50 text-[11px] text-gray-400">Éditeur : <span class="font-medium text-gray-600">' + b.editeur + '</span></div>';
+          }
+          html += '</div>';
+        });
+
+        bookListEl.innerHTML = html;
       }
 
-      genreSelect.addEventListener('change', (e) => {
+      genreSelect.addEventListener('change', function(e) {
         updateSubCategories(e.target.value);
         renderBooks();
       });
