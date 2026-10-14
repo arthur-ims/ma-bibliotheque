@@ -54,6 +54,7 @@
                 sous_categorie: cells[3]?.v?.toString().trim() || '',
                 editeur: cells[4]?.v?.toString().trim() || '',
                 format: cells[5]?.v?.toString().trim() || ''
+                
               };
             })
             .filter(b => b.titre !== '' && b.genre !== '' && b.titre.toLowerCase() !== 'titre');
