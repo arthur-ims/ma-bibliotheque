@@ -17,7 +17,7 @@ export default function App() {
           throw new Error("Impossible d'extraire les données Google Sheets");
         }
         
-        // CORRECTION ICI : On parse l'élément 1 du tableau match
+        // CORRIGÉ : On extrait le groupe 1 de la Regex
         const data = JSON.parse(match[1]);
         
         const rows = data.table.rows
@@ -70,7 +70,7 @@ export default function App() {
 
         <div className="mt-4 space-y-2.5">
           <select 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
             value={selectedGenre} 
             onChange={(e) => { setSelectedGenre(e.target.value); setSelectedSubCat(''); }}
           >
@@ -80,7 +80,7 @@ export default function App() {
 
           {selectedGenre && subCategories.length > 0 && (
             <select 
-              className="w-full bg-indigo-50/50 border border-indigo-100 text-indigo-900 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              className="w-full bg-indigo-50/50 border border-indigo-100 text-indigo-900 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
               value={selectedSubCat} 
               onChange={(e) => setSelectedSubCat(e.target.value)}
             >
