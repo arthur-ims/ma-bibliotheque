@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const SHEET_ID = '2PACX-1vQT573CUIhWzhVpP1iv2u57K1INIi5CQ69a40Y--w5qQUOwhA_djHd4wlPYkCjvU3OGHelCRZXe6i4o/pubhtml'; 
-const SHEET_URL = 'https://google.com' + SHEET_ID + '/gviz/tq?sheet=Livres&tqx=out:json';
+
+const SHEET_URL = "https://google.com";
 
 
 export default function App() {
