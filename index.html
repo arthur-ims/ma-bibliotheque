@@ -32,9 +32,10 @@
       const p = "ht" + "tps://";
       const d = "do" + "cs.";
       const g = "goo" + "gle.com";
-      const s = "/spread" + "sheets/d";
+      const s = "/spread" + "sheets/d/e/";
       const k = "2PACX-1vQT573CUIhWzhVpP1iv2u57K1INIi5CQ69a40Y--w5qQUOwhA_djHd4wlPYKcJvU3OGHe1CRZXe6i4o";
-      const q = "/gviz/tq?sheet=Livres&tqx=out:json";
+      // On remplace "sheet=Livres" par "gid=0" pour cibler la 1ère feuille à tous les coups
+      const q = "/gviz/tq?gid=0&tqx=out:json";
 
       const SHEET_URL = p + d + g + s + k + q;
 
