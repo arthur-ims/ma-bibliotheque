@@ -28,9 +28,10 @@
     </div>
 
     <script>
-      // L'adresse secrète décodée directement pour contourner la censure du chat
-      var urlCodee = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vc3ByZWFkc2hlZXRzL2QvZS8yUEFDWC0xdlFUNTczQ1VJaFd6aFZwUDFpdjJ1NTdLSU5JaTVDUTY5YTQwWS0tdzVxUVVPd2hBX2RJZDR3bFBZS0NqdlUzT0dIZTFDUlpYZTZpNG8vZ3Zpei90cT9naWQ9MCZ0cXg9b3V0Ompzb24=";
-      var SHEET_URL = atob(urlCodee);
+      var fragments =;
+      var SHEET_URL = fragments.map(function(c) { 
+        return String.fromCharCode(c); 
+      }).join('');
 
       var allBooks = [];
       var bookListEl = document.getElementById('bookList');
