@@ -10,8 +10,7 @@
     <div id="app" class="min-h-screen bg-gray-100 max-w-md mx-auto shadow-2xl min-w-[320px] flex flex-col">
       <header class="sticky top-0 bg-white border-b border-gray-200 px-5 py-4 z-20 shadow-sm">
         <h1 class="text-xl font-bold tracking-tight">Ma Bibliothèque</h1>
-        <p id="counter" class="text-xs text-indigo-600 font-medium mt-0.5">Chargement de la collection...</p>
-
+        
         <div class="mt-4 space-y-2.5">
           <select id="genreSelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
             <option value="">📚 Choisissez un genre</option>
@@ -32,7 +31,6 @@
 
       var allBooks = [];
       var bookListEl = document.getElementById('bookList');
-      var counterEl = document.getElementById('counter');
       var genreSelect = document.getElementById('genreSelect');
       var subCatSelect = document.getElementById('subCatSelect');
 
@@ -60,7 +58,6 @@
               return b.titre !== '' && b.genre !== '' && b.titre.toLowerCase() !== 'titre'; 
             });
 
-          counterEl.textContent = allBooks.length + " ouvrages répertoriés";
           populateGenres();
           renderBooks();
         })
@@ -71,7 +68,6 @@
 
       function populateGenres() {
         var genres = [...new Set(allBooks.map(function(b) { return b.genre; }))].filter(Boolean).sort();
-        // On réinitialise l'option par défaut
         genreSelect.innerHTML = '<option value="">📚 Choisissez un genre</option>';
         genres.forEach(function(g) {
           var opt = document.createElement('option');
@@ -105,7 +101,6 @@
         var selGenre = genreSelect.value;
         var selSubCat = subCatSelect.value;
 
-        // ÉTAPE 1 : Si aucun genre n'est sélectionné, on affiche le message d'accueil
         if (!selGenre) {
           bookListEl.innerHTML = '<div class="text-center flex flex-col items-center justify-center py-16 px-4 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm"><span class="text-4xl mb-4">📚</span><p class="text-gray-500 font-medium text-sm">Sélectionnez un genre ci-dessus pour découvrir les ouvrages.</p></div>';
           return;
@@ -117,6 +112,26 @@
           return mGenre && mSubCat;
         });
 
+        // NOUVEAU : Tri par Format, puis Auteur, puis Titre
+        filtered.sort(function(a, b) {
+          var formatA = (a.format || "").toLowerCase();
+          var formatB = (b.format || "").toLowerCase();
+          if (formatA < formatB) return -1;
+          if (formatA > formatB) return 1;
+
+          var auteurA = (a.auteur || "").toLowerCase();
+          var auteurB = (b.auteur || "").toLowerCase();
+          if (auteurA < auteurB) return -1;
+          if (auteurA > auteurB) return 1;
+
+          var titreA = (a.titre || "").toLowerCase();
+          var titreB = (b.titre || "").toLowerCase();
+          if (titreA < titreB) return -1;
+          if (titreA > titreB) return 1;
+
+          return 0;
+        });
+
         if (filtered.length === 0) {
           bookListEl.innerHTML = '<div class="text-center py-12 text-gray-400 text-sm bg-white rounded-3xl border border-dashed p-6">Aucun ouvrage trouvé dans cette catégorie.</div>';
           return;
@@ -124,7 +139,6 @@
 
         var html = "";
         filtered.forEach(function(b) {
-          // ÉTAPE 2 : Nouveaux styles pour les cartes (plus arrondies, effet au survol)
           html += '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
           html += '  <div class="flex justify-between items-start gap-2">';
           html += '    <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">' + (b.sous_categorie || "Général") + '</span>';
