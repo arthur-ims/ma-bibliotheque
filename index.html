@@ -28,7 +28,7 @@
     </div>
 
     <script>
-      const SHEET_URL = "/api/sheets";
+      var SHEET_URL = window.location.hash.substring(1);
 
       var allBooks = [];
       var bookListEl = document.getElementById('bookList');
