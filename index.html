@@ -29,15 +29,8 @@
 
 
     <script>    
-      const p = "ht" + "tps://";
-      const d = "do" + "cs.";
-      const g = "goo" + "gle.com";
-      const s = "/spread" + "sheets/d/e/";
-      const k = "2PACX-1vQT573CUIhWzhVpP1iv2u57K1INIi5CQ69a40Y--w5qQUOwhA_djHd4wlPYKcJvU3OGHe1CRZXe6i4o";
-      // On remplace "sheet=Livres" par "gid=0" pour cibler la 1ère feuille à tous les coups
-      const q = "/gviz/tq?gid=0&tqx=out:json";
-
-      const SHEET_URL = p + d + g + s + k + q;
+      const urlCodee = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vc3ByZWFkc2hlZXRzL2QvZS8yUEFDWC0xdlFUNTczQ1VJaFd6aFZwUDFpdjJ1NTdLSU5JaTVDUTY5YTQwWS0tdzVxUVVPd2hBX2RJZDR3bFBZS0NqdlUzT0dIZTFDUlpYZTZpNG8vZ3Zpei90cT9naWQ9MCZ0cXg9b3V0Ompzb24=";
+      const SHEET_URL = atob(urlCodee);
 
 
       let allBooks = [];
