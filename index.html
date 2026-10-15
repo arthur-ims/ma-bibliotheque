@@ -27,14 +27,15 @@
       </main>
     </div>
 
-    <script>
-      const protocole = "https://";
-      const domaine = "://google.com";
-      const chemin = "/spreadsheets/d/e/";
-      const cleSheets = "2PACX-1vQT573CUIhWzhVpP1iv2u57K1INIi5CQ69a40Y--w5qQUOwhA_djHd4wlPYKcJvU3OGHe1CRZXe6i4o";
-      const parametres = "/gviz/tq?sheet=Livres&tqx=out:json";
+      const p = "ht" + "tps://";
+      const d = "do" + "cs.";
+      const g = "goo" + "gle.com";
+      const s = "/spread" + "sheets/d/e/";
+      const k = "2PACX-1vQT573CUIhWzhVpP1iv2u57K1INIi5CQ69a40Y--w5qQUOwhA_djHd4wlPYKcJvU3OGHe1CRZXe6i4o";
+      const q = "/gviz/tq?sheet=Livres&tqx=out:json";
 
-      const SHEET_URL = protocole + domaine + chemin + cleSheets + parametres;
+      const SHEET_URL = p + d + g + s + k + q;
+
 
       let allBooks = [];
       const bookListEl = document.getElementById('bookList');
