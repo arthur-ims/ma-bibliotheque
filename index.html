@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>.
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>Ma Bibliothèque</title>
   </head>
   <body class="bg-gray-100 text-gray-900 font-sans antialiased">
@@ -14,7 +14,7 @@
 
         <div class="mt-4 space-y-2.5">
           <select id="genreSelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
-            <option value="">📚 Tous les genres</option>
+            <option value="">📚 Choisissez un genre</option>
           </select>
           <select id="subCatSelect" class="w-full bg-indigo-50/50 border border-indigo-100 text-indigo-900 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer hidden">
             <option value="">📂 Toutes les sous-catégories</option>
@@ -71,6 +71,8 @@
 
       function populateGenres() {
         var genres = [...new Set(allBooks.map(function(b) { return b.genre; }))].filter(Boolean).sort();
+        // On réinitialise l'option par défaut
+        genreSelect.innerHTML = '<option value="">📚 Choisissez un genre</option>';
         genres.forEach(function(g) {
           var opt = document.createElement('option');
           opt.value = g;
@@ -103,6 +105,12 @@
         var selGenre = genreSelect.value;
         var selSubCat = subCatSelect.value;
 
+        // ÉTAPE 1 : Si aucun genre n'est sélectionné, on affiche le message d'accueil
+        if (!selGenre) {
+          bookListEl.innerHTML = '<div class="text-center flex flex-col items-center justify-center py-16 px-4 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm"><span class="text-4xl mb-4">📚</span><p class="text-gray-500 font-medium text-sm">Sélectionnez un genre ci-dessus pour découvrir les ouvrages.</p></div>';
+          return;
+        }
+
         var filtered = allBooks.filter(function(b) {
           var mGenre = selGenre ? b.genre === selGenre : true;
           var mSubCat = selSubCat ? b.sous_categorie === selSubCat : true;
@@ -110,13 +118,14 @@
         });
 
         if (filtered.length === 0) {
-          bookListEl.innerHTML = '<div class="text-center py-12 text-gray-400 text-sm bg-white rounded-2xl border border-dashed p-6">Aucun ouvrage trouvé.</div>';
+          bookListEl.innerHTML = '<div class="text-center py-12 text-gray-400 text-sm bg-white rounded-3xl border border-dashed p-6">Aucun ouvrage trouvé dans cette catégorie.</div>';
           return;
         }
 
         var html = "";
         filtered.forEach(function(b) {
-          html += '<div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-2">';
+          // ÉTAPE 2 : Nouveaux styles pour les cartes (plus arrondies, effet au survol)
+          html += '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
           html += '  <div class="flex justify-between items-start gap-2">';
           html += '    <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">' + (b.sous_categorie || "Général") + '</span>';
           if (b.format) {
