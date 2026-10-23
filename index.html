@@ -84,6 +84,19 @@
           allBooks = data.table.rows
             .map(function(row, index) {
               var cells = row.c || [];
+              
+              // Recherche automatique du prix dans les colonnes de fin
+              var prixTrouve = 0;
+              for (var i = cells.length - 1; i >= 4; i--) {
+                if (cells[i] && cells[i].v) {
+                  var val = parseFloat(cells[i].v.toString().replace(',', '.'));
+                  if (!isNaN(val) && val > 0) {
+                    prixTrouve = val;
+                    break;
+                  }
+                }
+              }
+
               return {
                 id: index,
                 titre: cells[0]?.v?.toString().trim() || '',
@@ -92,9 +105,7 @@
                 sous_categorie: cells[3]?.v?.toString().trim() || '',
                 editeur: cells[4]?.v?.toString().trim() || '',
                 format: cells[5]?.v?.toString().trim() || '',
-                prix: parseFloat((cells[5]?.v?.toString() || '0').replace(',', '.')) || 
-                  parseFloat((cells[6]?.v?.toString() || '0').replace(',', '.')) || 
-                  parseFloat((cells[7]?.v?.toString() || '0').replace(',', '.')) || 0
+                prix: prixTrouve
               };
             })
             .filter(function(b) { 
