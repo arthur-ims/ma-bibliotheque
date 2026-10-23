@@ -82,21 +82,29 @@
           
           var data = JSON.parse(match[1]);
           
+          // 1. Recherche automatique de la colonne "Prix"
+          var indexPrix = -1;
+          if (data.table.cols) {
+            for (var c = 0; c < data.table.cols.length; c++) {
+              var titreColonne = data.table.cols[c]?.label || '';
+              // Si le titre de la colonne contient le mot "prix"
+              if (titreColonne.toLowerCase().includes('prix')) {
+                indexPrix = c;
+                break;
+              }
+            }
+          }
+
+          // 2. Récupération des livres
           allBooks = data.table.rows
             .map(function(row, index) {
               var cells = row.c || [];
               
-              // Recherche infaillible du prix : on scanne à l'envers et on nettoie les symboles
               var prixTrouve = 0;
-              for (var i = cells.length - 1; i >= 4; i--) {
-                if (cells[i] && cells[i].v != null) {
-                  var texteNettoye = cells[i].v.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
-                  var valeur = parseFloat(texteNettoye);
-                  if (!isNaN(valeur) && valeur > 0) {
-                    prixTrouve = valeur;
-                    break;
-                  }
-                }
+              // Si on a trouvé la colonne Prix, on lit son contenu
+              if (indexPrix !== -1 && cells[indexPrix] && cells[indexPrix].v != null) {
+                var texteNettoye = cells[indexPrix].v.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
+                prixTrouve = parseFloat(texteNettoye) || 0;
               }
 
               return {
