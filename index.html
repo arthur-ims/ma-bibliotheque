@@ -81,9 +81,24 @@
           if (!match) throw new Error("Format de réponse Google Sheets invalide");
           
           var data = JSON.parse(match[1]);
+          
           allBooks = data.table.rows
             .map(function(row, index) {
               var cells = row.c || [];
+              
+              // Recherche infaillible du prix : on scanne à l'envers et on nettoie les symboles
+              var prixTrouve = 0;
+              for (var i = cells.length - 1; i >= 4; i--) {
+                if (cells[i] && cells[i].v != null) {
+                  var texteNettoye = cells[i].v.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
+                  var valeur = parseFloat(texteNettoye);
+                  if (!isNaN(valeur) && valeur > 0) {
+                    prixTrouve = valeur;
+                    break;
+                  }
+                }
+              }
+
               return {
                 id: index,
                 titre: cells[0]?.v?.toString().trim() || '',
@@ -91,9 +106,8 @@
                 genre: cells[2]?.v?.toString().trim() || '',
                 sous_categorie: cells[3]?.v?.toString().trim() || '',
                 editeur: cells[4]?.v?.toString().trim() || '',
-                format: cells[5]?.v?.toString().trim() || '',
-                prix: parseFloat((cells[5]?.v?.toString() || '0').replace(',', '.')) || 
-                parseFloat((cells[6]?.v?.toString() || '0').replace(',', '.')) || 0
+                format: cells[5]?.v?.toString().trim() || '', 
+                prix: prixTrouve
               };
             })
             .filter(function(b) { 
@@ -105,7 +119,7 @@
         })
         .catch(function(err) {
           console.error(err);
-          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur de chargement. Vérifiez votre nouveau lien (gid).</div>';
+          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur lors du chargement des données. Vérifiez l\'URL.</div>';
         });
 
       function populateGenres() {
@@ -139,7 +153,6 @@
         }
       }
 
-      // Design Bibliothèque (Format affiché, pas de prix)
       function generateLibraryBookHTML(b) {
         var html = '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
         html += '  <div class="flex justify-between items-start gap-2">';
@@ -159,7 +172,6 @@
         return html;
       }
 
-      // Design Wishlist (Genre et Prix affichés)
       function generateWishlistBookHTML(b) {
         var html = '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
         html += '  <div class="flex justify-between items-start gap-2">';
