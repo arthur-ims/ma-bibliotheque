@@ -40,7 +40,6 @@
         </div>
         
         <div class="p-4 bg-white border-b border-gray-100 flex gap-2 overflow-x-auto hide-scrollbars">
-          <!-- Modification : ajout des tranches exactes -->
           <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-max="10">- de 10€</button>
           <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-min="10" data-max="20">10€ à 20€</button>
           <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-min="20" data-max="50">20€ à 50€</button>
@@ -92,7 +91,7 @@
                 genre: cells[9]?.v?.toString().trim() || '',
                 sous_categorie: cells[10]?.v?.toString().trim() || '',
                 editeur: cells[11]?.v?.toString().trim() || '',
-                format: '',
+                format: '', // Si vous avez une colonne format plus tard, vous pourrez l'ajouter ici
                 prix: parseFloat((cells[12]?.v?.toString() || '0').replace(',', '.')) || 0
               };
             })
@@ -139,18 +138,36 @@
         }
       }
 
-      function generateBookHTML(b) {
+      // 1. Design pour la bibliothèque principale
+      function generateLibraryBookHTML(b) {
         var html = '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
         html += '  <div class="flex justify-between items-start gap-2">';
-        
-        // Modification : Affichage du Genre et du Sous-genre
+        html += '    <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">' + (b.sous_categorie || "Général") + '</span>';
+        if (b.format) {
+          html += '    <span class="text-[10px] text-gray-400 font-medium uppercase">' + b.format + '</span>';
+        }
+        html += '  </div>';
+        html += '  <h3 class="font-bold text-gray-800 text-base leading-snug">' + b.titre + '</h3>';
+        if (b.auteur !== 'Auteur inconnu' && b.auteur !== '') {
+          html += '  <p class="text-xs text-gray-500 font-medium">par ' + b.auteur + '</p>';
+        }
+        if (b.editeur) {
+          html += '  <div class="pt-1 border-t border-gray-50 text-[11px] text-gray-400">Éditeur : <span class="font-medium text-gray-600">' + b.editeur + '</span></div>';
+        }
+        html += '</div>';
+        return html;
+      }
+
+      // 2. Design pour la Wishlist
+      function generateWishlistBookHTML(b) {
+        var html = '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
+        html += '  <div class="flex justify-between items-start gap-2">';
         html += '    <div class="flex flex-wrap gap-1">';
         if (b.genre) {
           html += '      <span class="inline-block text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded">' + b.genre + '</span>';
         }
         html += '      <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">' + (b.sous_categorie || "Général") + '</span>';
         html += '    </div>';
-
         if (b.prix > 0) {
           html += '    <span class="text-[11px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full whitespace-nowrap">' + b.prix + ' €</span>';
         }
@@ -201,7 +218,8 @@
         }
 
         var html = "";
-        filtered.forEach(function(b) { html += generateBookHTML(b); });
+        // Utilisation du design de la bibliothèque
+        filtered.forEach(function(b) { html += generateLibraryBookHTML(b); });
         bookListEl.innerHTML = html;
       }
 
@@ -239,7 +257,6 @@
           var filtered = allBooks.filter(function(b) {
             if (b.prix === 0) return false; 
             
-            // Modification : exclusion stricte pour les tranches
             if (minPrice !== null && b.prix <= minPrice) return false; 
             if (maxPrice !== null && b.prix > maxPrice) return false;
             
@@ -254,7 +271,8 @@
           }
 
           var html = "";
-          filtered.forEach(function(b) { html += generateBookHTML(b); });
+          // Utilisation du design détaillé pour la Wishlist
+          filtered.forEach(function(b) { html += generateWishlistBookHTML(b); });
           wishlistResults.innerHTML = html;
         });
       });
