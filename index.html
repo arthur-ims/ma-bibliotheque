@@ -85,30 +85,20 @@
             .map(function(row, index) {
               var cells = row.c || [];
               
-              // Recherche automatique du prix dans les colonnes de fin
-              var prixTrouve = 0;
-              for (var i = cells.length - 1; i >= 4; i--) {
-                if (cells[i] && cells[i].v) {
-                  var val = parseFloat(cells[i].v.toString().replace(',', '.'));
-                  if (!isNaN(val) && val > 0) {
-                    prixTrouve = val;
-                    break;
-                  }
-                }
-              }
-
+              // Décalage pour lire à partir de la colonne H (index 7)
               return {
                 id: index,
-                titre: cells[0]?.v?.toString().trim() || '',
-                auteur: cells[1]?.v?.toString().trim() || 'Auteur inconnu',
-                genre: cells[2]?.v?.toString().trim() || '',
-                sous_categorie: cells[3]?.v?.toString().trim() || '',
-                editeur: cells[4]?.v?.toString().trim() || '',
-                format: cells[5]?.v?.toString().trim() || '',
-                prix: prixTrouve
+                titre: cells[7]?.v?.toString().trim() || '',
+                auteur: cells[8]?.v?.toString().trim() || 'Auteur inconnu',
+                genre: cells[9]?.v?.toString().trim() || '',
+                sous_categorie: cells[10]?.v?.toString().trim() || '',
+                editeur: cells[11]?.v?.toString().trim() || '',
+                format: '',
+                prix: parseFloat((cells[12]?.v?.toString() || '0').replace(',', '.')) || 0
               };
             })
             .filter(function(b) { 
+              // On filtre pour ne garder que les vrais livres (qui ont un titre et un genre)
               return b.titre !== '' && b.genre !== '' && b.titre.toLowerCase() !== 'titre'; 
             });
 
@@ -117,7 +107,7 @@
         })
         .catch(function(err) {
           console.error(err);
-          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur lors du chargement</div>';
+          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur lors du chargement des données. Vérifiez l\'URL.</div>';
         });
 
       function populateGenres() {
@@ -157,8 +147,6 @@
         html += '    <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">' + (b.sous_categorie || "Général") + '</span>';
         if (b.prix > 0) {
           html += '    <span class="text-[11px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full">' + b.prix + ' €</span>';
-        } else if (b.format) {
-          html += '    <span class="text-[10px] text-gray-400 font-medium uppercase">' + b.format + '</span>';
         }
         html += '  </div>';
         html += '  <h3 class="font-bold text-gray-800 text-base leading-snug">' + b.titre + '</h3>';
@@ -187,12 +175,8 @@
           return mGenre && mSubCat;
         });
 
+        // Tri par Auteur puis Titre
         filtered.sort(function(a, b) {
-          var formatA = (a.format || "").toLowerCase();
-          var formatB = (b.format || "").toLowerCase();
-          if (formatA < formatB) return -1;
-          if (formatA > formatB) return 1;
-
           var auteurA = (a.auteur || "").toLowerCase();
           var auteurB = (b.auteur || "").toLowerCase();
           if (auteurA < auteurB) return -1;
@@ -254,6 +238,7 @@
             return true;
           });
 
+          // Tri par prix croissant pour la wishlist
           filtered.sort(function(a, b) { return a.prix - b.prix; });
 
           if (filtered.length === 0) {
