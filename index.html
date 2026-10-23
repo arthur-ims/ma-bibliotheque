@@ -25,15 +25,13 @@
         <div class="text-center py-12 text-gray-400 text-sm">Connexion à Google Sheets...</div>
       </main>
 
-      <!-- Bouton Wishlist Fixé en bas -->
-      <div class="fixed bottom-0 w-full max-w-md bg-white/90 backdrop-blur-sm border-t border-gray-200 p-4 z-20">
-        <button id="openWishlist" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-indigo-700 hover:-translate-y-0.5 transition-all duration-300">
-          🎁 Voir ma Wishlist (Budget)
+      <div class="fixed bottom-4 w-full max-w-md z-20 flex justify-center pointer-events-none">
+        <button id="openWishlist" class="pointer-events-auto bg-gray-700 text-white text-sm font-medium py-2 px-6 rounded-full shadow-md hover:bg-gray-800 hover:-translate-y-0.5 transition-all duration-300">
+          🎁 Wishlist
         </button>
       </div>
     </div>
 
-    <!-- Modale Wishlist -->
     <div id="wishlistModal" class="fixed inset-0 bg-gray-900/60 hidden z-50 flex-col items-center justify-end">
       <div class="bg-gray-50 w-full max-w-md h-[85vh] rounded-t-3xl flex flex-col shadow-2xl transform transition-transform translate-y-full" id="wishlistContent">
         <div class="p-5 border-b border-gray-200 bg-white rounded-t-3xl flex justify-between items-center sticky top-0">
@@ -69,7 +67,6 @@
       var genreSelect = document.getElementById('genreSelect');
       var subCatSelect = document.getElementById('subCatSelect');
 
-      // Éléments Wishlist
       var wishlistModal = document.getElementById('wishlistModal');
       var wishlistContent = document.getElementById('wishlistContent');
       var openWishlistBtn = document.getElementById('openWishlist');
@@ -94,8 +91,8 @@
                 genre: cells[2]?.v?.toString().trim() || '',
                 sous_categorie: cells[3]?.v?.toString().trim() || '',
                 editeur: cells[4]?.v?.toString().trim() || '',
-                // Colonne F (index 5) est maintenant le Prix
-                prix: parseFloat((cells[5]?.v?.toString() || '0').replace(',', '.')) || 0 
+                format: cells[5]?.v?.toString().trim() || '',
+                prix: parseFloat((cells[6]?.v?.toString() || '0').replace(',', '.')) || 0 
               };
             })
             .filter(function(b) { 
@@ -147,6 +144,8 @@
         html += '    <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">' + (b.sous_categorie || "Général") + '</span>';
         if (b.prix > 0) {
           html += '    <span class="text-[11px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full">' + b.prix + ' €</span>';
+        } else if (b.format) {
+          html += '    <span class="text-[10px] text-gray-400 font-medium uppercase">' + b.format + '</span>';
         }
         html += '  </div>';
         html += '  <h3 class="font-bold text-gray-800 text-base leading-snug">' + b.titre + '</h3>';
@@ -176,6 +175,11 @@
         });
 
         filtered.sort(function(a, b) {
+          var formatA = (a.format || "").toLowerCase();
+          var formatB = (b.format || "").toLowerCase();
+          if (formatA < formatB) return -1;
+          if (formatA > formatB) return 1;
+
           var auteurA = (a.auteur || "").toLowerCase();
           var auteurB = (b.auteur || "").toLowerCase();
           if (auteurA < auteurB) return -1;
@@ -205,7 +209,6 @@
       });
       subCatSelect.addEventListener('change', renderBooks);
 
-      // Logique de la modale Wishlist
       openWishlistBtn.addEventListener('click', function() {
         wishlistModal.classList.remove('hidden');
         wishlistModal.classList.add('flex');
@@ -222,10 +225,8 @@
         }, 300);
       });
 
-      // Filtres de prix
       budgetBtns.forEach(function(btn) {
         btn.addEventListener('click', function() {
-          // Gérer le style actif
           budgetBtns.forEach(function(b) { b.classList.remove('bg-indigo-600', 'text-white'); b.classList.add('bg-gray-100', 'text-gray-600'); });
           this.classList.remove('bg-gray-100', 'text-gray-600');
           this.classList.add('bg-indigo-600', 'text-white');
@@ -234,13 +235,12 @@
           var minPrice = parseFloat(this.getAttribute('data-min'));
 
           var filtered = allBooks.filter(function(b) {
-            if (b.prix === 0) return false; // Ignorer les livres sans prix
+            if (b.prix === 0) return false; 
             if (maxPrice) return b.prix <= maxPrice;
             if (minPrice) return b.prix >= minPrice;
             return true;
           });
 
-          // Tri par prix croissant
           filtered.sort(function(a, b) { return a.prix - b.prix; });
 
           if (filtered.length === 0) {
