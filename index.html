@@ -40,10 +40,11 @@
         </div>
         
         <div class="p-4 bg-white border-b border-gray-100 flex gap-2 overflow-x-auto hide-scrollbars">
+          <!-- Modification : ajout des tranches exactes -->
           <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-max="10">- de 10€</button>
-          <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-max="20">- de 20€</button>
-          <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-max="50">- de 50€</button>
-          <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-min="50">50€ et +</button>
+          <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-min="10" data-max="20">10€ à 20€</button>
+          <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-min="20" data-max="50">20€ à 50€</button>
+          <button class="budget-btn flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-colors" data-min="50">+ de 50€</button>
         </div>
 
         <div id="wishlistResults" class="p-4 flex-1 overflow-y-auto space-y-3">
@@ -84,8 +85,6 @@
           allBooks = data.table.rows
             .map(function(row, index) {
               var cells = row.c || [];
-              
-              // Décalage pour lire à partir de la colonne H (index 7)
               return {
                 id: index,
                 titre: cells[7]?.v?.toString().trim() || '',
@@ -98,7 +97,6 @@
               };
             })
             .filter(function(b) { 
-              // On filtre pour ne garder que les vrais livres (qui ont un titre et un genre)
               return b.titre !== '' && b.genre !== '' && b.titre.toLowerCase() !== 'titre'; 
             });
 
@@ -144,17 +142,25 @@
       function generateBookHTML(b) {
         var html = '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
         html += '  <div class="flex justify-between items-start gap-2">';
-        html += '    <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">' + (b.sous_categorie || "Général") + '</span>';
+        
+        // Modification : Affichage du Genre et du Sous-genre
+        html += '    <div class="flex flex-wrap gap-1">';
+        if (b.genre) {
+          html += '      <span class="inline-block text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded">' + b.genre + '</span>';
+        }
+        html += '      <span class="inline-block text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">' + (b.sous_categorie || "Général") + '</span>';
+        html += '    </div>';
+
         if (b.prix > 0) {
-          html += '    <span class="text-[11px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full">' + b.prix + ' €</span>';
+          html += '    <span class="text-[11px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full whitespace-nowrap">' + b.prix + ' €</span>';
         }
         html += '  </div>';
-        html += '  <h3 class="font-bold text-gray-800 text-base leading-snug">' + b.titre + '</h3>';
+        html += '  <h3 class="font-bold text-gray-800 text-base leading-snug mt-1">' + b.titre + '</h3>';
         if (b.auteur !== 'Auteur inconnu' && b.auteur !== '') {
           html += '  <p class="text-xs text-gray-500 font-medium">par ' + b.auteur + '</p>';
         }
         if (b.editeur) {
-          html += '  <div class="pt-1 border-t border-gray-50 text-[11px] text-gray-400">Éditeur : <span class="font-medium text-gray-600">' + b.editeur + '</span></div>';
+          html += '  <div class="pt-2 border-t border-gray-50 text-[11px] text-gray-400">Éditeur : <span class="font-medium text-gray-600">' + b.editeur + '</span></div>';
         }
         html += '</div>';
         return html;
@@ -175,7 +181,6 @@
           return mGenre && mSubCat;
         });
 
-        // Tri par Auteur puis Titre
         filtered.sort(function(a, b) {
           var auteurA = (a.auteur || "").toLowerCase();
           var auteurB = (b.auteur || "").toLowerCase();
@@ -228,17 +233,19 @@
           this.classList.remove('bg-gray-100', 'text-gray-600');
           this.classList.add('bg-indigo-600', 'text-white');
 
-          var maxPrice = parseFloat(this.getAttribute('data-max'));
-          var minPrice = parseFloat(this.getAttribute('data-min'));
+          var maxPrice = this.getAttribute('data-max') ? parseFloat(this.getAttribute('data-max')) : null;
+          var minPrice = this.getAttribute('data-min') ? parseFloat(this.getAttribute('data-min')) : null;
 
           var filtered = allBooks.filter(function(b) {
             if (b.prix === 0) return false; 
-            if (maxPrice) return b.prix <= maxPrice;
-            if (minPrice) return b.prix >= minPrice;
+            
+            // Modification : exclusion stricte pour les tranches
+            if (minPrice !== null && b.prix <= minPrice) return false; 
+            if (maxPrice !== null && b.prix > maxPrice) return false;
+            
             return true;
           });
 
-          // Tri par prix croissant pour la wishlist
           filtered.sort(function(a, b) { return a.prix - b.prix; });
 
           if (filtered.length === 0) {
