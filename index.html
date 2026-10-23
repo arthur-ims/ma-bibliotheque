@@ -86,13 +86,13 @@
               var cells = row.c || [];
               return {
                 id: index,
-                titre: cells[7]?.v?.toString().trim() || '',
-                auteur: cells[8]?.v?.toString().trim() || 'Auteur inconnu',
-                genre: cells[9]?.v?.toString().trim() || '',
-                sous_categorie: cells[10]?.v?.toString().trim() || '',
-                editeur: cells[11]?.v?.toString().trim() || '',
-                format: '', // Si vous avez une colonne format plus tard, vous pourrez l'ajouter ici
-                prix: parseFloat((cells[12]?.v?.toString() || '0').replace(',', '.')) || 0
+                titre: cells[0]?.v?.toString().trim() || '',
+                auteur: cells[1]?.v?.toString().trim() || 'Auteur inconnu',
+                genre: cells[2]?.v?.toString().trim() || '',
+                sous_categorie: cells[3]?.v?.toString().trim() || '',
+                editeur: cells[4]?.v?.toString().trim() || '',
+                format: cells[5]?.v?.toString().trim() || '',
+                prix: parseFloat((cells[6]?.v?.toString() || '0').replace(',', '.')) || 0
               };
             })
             .filter(function(b) { 
@@ -104,7 +104,7 @@
         })
         .catch(function(err) {
           console.error(err);
-          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur lors du chargement des données. Vérifiez l\'URL.</div>';
+          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur de chargement. Vérifiez votre nouveau lien (gid).</div>';
         });
 
       function populateGenres() {
@@ -138,7 +138,7 @@
         }
       }
 
-      // 1. Design pour la bibliothèque principale
+      // Design Bibliothèque (Format affiché, pas de prix)
       function generateLibraryBookHTML(b) {
         var html = '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
         html += '  <div class="flex justify-between items-start gap-2">';
@@ -158,7 +158,7 @@
         return html;
       }
 
-      // 2. Design pour la Wishlist
+      // Design Wishlist (Genre et Prix affichés)
       function generateWishlistBookHTML(b) {
         var html = '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
         html += '  <div class="flex justify-between items-start gap-2">';
@@ -199,16 +199,18 @@
         });
 
         filtered.sort(function(a, b) {
+          var formatA = (a.format || "").toLowerCase();
+          var formatB = (b.format || "").toLowerCase();
+          if (formatA < formatB) return -1;
+          if (formatA > formatB) return 1;
           var auteurA = (a.auteur || "").toLowerCase();
           var auteurB = (b.auteur || "").toLowerCase();
           if (auteurA < auteurB) return -1;
           if (auteurA > auteurB) return 1;
-
           var titreA = (a.titre || "").toLowerCase();
           var titreB = (b.titre || "").toLowerCase();
           if (titreA < titreB) return -1;
           if (titreA > titreB) return 1;
-
           return 0;
         });
 
@@ -218,7 +220,6 @@
         }
 
         var html = "";
-        // Utilisation du design de la bibliothèque
         filtered.forEach(function(b) { html += generateLibraryBookHTML(b); });
         bookListEl.innerHTML = html;
       }
@@ -256,10 +257,8 @@
 
           var filtered = allBooks.filter(function(b) {
             if (b.prix === 0) return false; 
-            
             if (minPrice !== null && b.prix <= minPrice) return false; 
             if (maxPrice !== null && b.prix > maxPrice) return false;
-            
             return true;
           });
 
@@ -271,7 +270,6 @@
           }
 
           var html = "";
-          // Utilisation du design détaillé pour la Wishlist
           filtered.forEach(function(b) { html += generateWishlistBookHTML(b); });
           wishlistResults.innerHTML = html;
         });
