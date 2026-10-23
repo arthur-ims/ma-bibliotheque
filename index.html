@@ -92,7 +92,8 @@
                 sous_categorie: cells[3]?.v?.toString().trim() || '',
                 editeur: cells[4]?.v?.toString().trim() || '',
                 format: cells[5]?.v?.toString().trim() || '',
-                prix: parseFloat((cells[6]?.v?.toString() || '0').replace(',', '.')) || 0
+                prix: parseFloat((cells[5]?.v?.toString() || '0').replace(',', '.')) || 
+                parseFloat((cells[6]?.v?.toString() || '0').replace(',', '.')) || 0
               };
             })
             .filter(function(b) { 
