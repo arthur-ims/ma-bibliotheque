@@ -78,32 +78,17 @@
         .then(function(res) { return res.text(); })
         .then(function(text) {
           var match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
-          if (!match) throw new Error("Format de réponse Google Sheets invalide");
+          if (!match) throw new Error("Format de réponse invalide");
           
           var data = JSON.parse(match[1]);
           
-          // 1. Recherche automatique de la colonne "Prix"
-          var indexPrix = -1;
-          if (data.table.cols) {
-            for (var c = 0; c < data.table.cols.length; c++) {
-              var titreColonne = data.table.cols[c]?.label || '';
-              // Si le titre de la colonne contient le mot "prix"
-              if (titreColonne.toLowerCase().includes('prix')) {
-                indexPrix = c;
-                break;
-              }
-            }
-          }
-
-          // 2. Récupération des livres
           allBooks = data.table.rows
             .map(function(row, index) {
               var cells = row.c || [];
               
               var prixTrouve = 0;
-              // Si on a trouvé la colonne Prix, on lit son contenu
-              if (indexPrix !== -1 && cells[indexPrix] && cells[indexPrix].v != null) {
-                var texteNettoye = cells[indexPrix].v.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
+              if (cells[6] && cells[6].v != null) {
+                var texteNettoye = cells[6].v.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
                 prixTrouve = parseFloat(texteNettoye) || 0;
               }
 
@@ -127,7 +112,7 @@
         })
         .catch(function(err) {
           console.error(err);
-          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur lors du chargement des données. Vérifiez l\'URL.</div>';
+          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur lors du chargement des données.</div>';
         });
 
       function populateGenres() {
