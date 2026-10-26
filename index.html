@@ -61,7 +61,10 @@
     </style>
 
     <script>
+      // Ajout d'un système pour forcer le rafraîchissement des données (contournement du cache Google)
       var SHEET_URL = window.location.hash.substring(1);
+      var FETCH_URL = SHEET_URL + (SHEET_URL.includes('?') ? '&' : '?') + 'bypass=' + new Date().getTime();
+      
       var allBooks = [];
       var bookListEl = document.getElementById('bookList');
       var genreSelect = document.getElementById('genreSelect');
@@ -74,7 +77,7 @@
       var wishlistResults = document.getElementById('wishlistResults');
       var budgetBtns = document.querySelectorAll('.budget-btn');
 
-      fetch(SHEET_URLfetch +'&bypass=' + new Date().getTime())
+      fetch(FETCH_URL)
         .then(function(res) { return res.text(); })
         .then(function(text) {
           var match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
@@ -82,33 +85,62 @@
           
           var data = JSON.parse(match[1]);
           
-          allBooks = data.table.rows
-            .map(function(row, index) {
-              var cells = row.c || [];
-              
-              var prixTrouve = 0;
-              if (cells[6] && cells[6].v != null) {
-                var texteNettoye = cells[6].v.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
-                prixTrouve = parseFloat(texteNettoye) || 0;
-              }
+          // --- DETECTION BLINDÉE DES EN-TÊTES ---
+          var headers = [];
+          var startIndex = 0;
+          
+          // 1. Cherche dans les colonnes officielles
+          if (data.table.cols && data.table.cols[0] && data.table.cols[0].label !== '') {
+            headers = data.table.cols.map(function(c) { return c ? c.label : ''; });
+          } 
+          // 2. Si Google Sheets a caché les en-têtes dans la première ligne du tableau !
+          else if (data.table.rows.length > 0) {
+            headers = data.table.rows[0].c.map(function(c) { return (c && c.v) ? c.v.toString() : ''; });
+            startIndex = 1; // On dit au code de commencer à lire les livres à partir de la ligne 2
+          }
 
-              return {
-                id: index,
-                titre: cells[0]?.v?.toString().trim() || '',
-                auteur: cells[1]?.v?.toString().trim() || 'Auteur inconnu',
-                genre: cells[2]?.v?.toString().trim() || '',
-                sous_categorie: cells[3]?.v?.toString().trim() || '',
-                editeur: cells[4]?.v?.toString().trim() || '',
-                format: cells[5]?.v?.toString().trim() || '', 
-                prix: prixTrouve
-              };
-            })
-            .filter(function(b) { 
-              return b.titre !== '' && b.genre !== '' && b.titre.toLowerCase() !== 'titre'; 
+          var indexPrix = -1;
+          for (var i = 0; i < headers.length; i++) {
+            if (headers[i].toLowerCase().includes('prix')) {
+              indexPrix = i;
+              break;
+            }
+          }
+
+          // --- LECTURE DES LIVRES ---
+          for (var i = startIndex; i < data.table.rows.length; i++) {
+            var cells = data.table.rows[i].c || [];
+            var titre = cells[0]?.v?.toString().trim() || '';
+            
+            // On ignore les lignes vides ou les en-têtes restants
+            if (titre === '' || titre.toLowerCase() === 'titre') continue;
+
+            var prixTrouve = 0;
+            // On lit le prix grâce à l'index trouvé de manière sécurisée
+            if (indexPrix !== -1 && cells[indexPrix] && cells[indexPrix].v != null) {
+              var str = cells[indexPrix].v.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
+              prixTrouve = parseFloat(str) || 0;
+            }
+
+            allBooks.push({
+              id: i,
+              titre: titre,
+              auteur: cells[1]?.v?.toString().trim() || 'Auteur inconnu',
+              genre: cells[2]?.v?.toString().trim() || '',
+              sous_categorie: cells[3]?.v?.toString().trim() || '',
+              editeur: cells[4]?.v?.toString().trim() || '',
+              format: cells[5]?.v?.toString().trim() || '', 
+              prix: prixTrouve
             });
+          }
 
-          populateGenres();
-          renderBooks();
+          // Affichage final
+          if (allBooks.length > 0) {
+            populateGenres();
+            renderBooks();
+          } else {
+            bookListEl.innerHTML = '<div class="text-center py-12 text-gray-500">Aucun livre trouvé dans le document.</div>';
+          }
         })
         .catch(function(err) {
           console.error(err);
