@@ -74,7 +74,7 @@
       var wishlistResults = document.getElementById('wishlistResults');
       var budgetBtns = document.querySelectorAll('.budget-btn');
 
-      fetch(SHEET_URL)
+      fetch(SHEET_URLfetch +'&bypass=' + new Date().getTime())
         .then(function(res) { return res.text(); })
         .then(function(text) {
           var match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
