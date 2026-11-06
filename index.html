@@ -62,8 +62,9 @@
 
     <script>
       // Ajout d'un système pour forcer le rafraîchissement des données (contournement du cache Google)
-      var SHEET_URL = window.location.hash.substring(1);
-      var FETCH_URL = SHEET_URL + (SHEET_URL.includes('?') ? '&' : '?') + 'bypass=' + new Date().getTime();
+    var SHEET_URL = "https://docs.google.com/spreadsheets/d/1cTDScC1_ztdHHUwurCl_NsVifS46VDQJaChsyuGvrqU/gviz/tq?tqx=out:json&sheet=Wishlist&headers=1&range=A:G";
+    var FETCH_URL = SHEET_URL + "&bypass=" + new Date().getTime();
+
       
       var allBooks = [];
       var bookListEl = document.getElementById('bookList');
