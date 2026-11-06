@@ -35,7 +35,7 @@
     <div id="wishlistModal" class="fixed inset-0 bg-gray-900/60 hidden z-50 flex-col items-center justify-end">
       <div class="bg-gray-50 w-full max-w-md h-[85vh] rounded-t-3xl flex flex-col shadow-2xl transform transition-transform translate-y-full" id="wishlistContent">
         <div class="p-5 border-b border-gray-200 bg-white rounded-t-3xl flex justify-between items-center sticky top-0">
-          <h2 class="text-lg font-bold"></h2>
+          <h2 class="text-lg font-bold">Je suis curieux de tout donc faites-vous plaisir (et si vraiment vous êtes en manque d'idées voici les miennes)</h2>
           <button id="closeWishlist" class="text-gray-400 hover:text-gray-800 text-3xl leading-none">&times;</button>
         </div>
         
@@ -132,7 +132,7 @@
 
       function populateGenres() {
         var genres = [...new Set(allBooks.map(function(b) { return b.genre; }))].filter(Boolean).sort();
-        genreSelect.innerHTML = '<option value="">📚 Choisissez un genre</option>';
+        genreSelect.innerHTML = '<option value=""> Choisissez un genre</option>';
         genres.forEach(function(g) {
           var opt = document.createElement('option');
           opt.value = g;
@@ -142,7 +142,7 @@
       }
 
       function updateSubCategories(selectedGenre) {
-        subCatSelect.innerHTML = '<option value="">📂 Toutes les sous-catégories</option>';
+        subCatSelect.innerHTML = '<option value=""> Toutes les sous-catégories</option>';
         if (!selectedGenre) {
           subCatSelect.classList.add('hidden');
           return;
