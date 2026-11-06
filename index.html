@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Ma Bibliothèque</title>
+    <title>L'hétéroclite bibliothèque d'Arthur</title>
   </head>
   <body class="bg-gray-100 text-gray-900 font-sans antialiased relative">
     <div id="app" class="min-h-screen bg-gray-100 max-w-md mx-auto shadow-2xl min-w-[320px] flex flex-col relative pb-20">
@@ -13,10 +13,10 @@
         
         <div class="mt-4 space-y-2.5">
           <select id="genreSelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
-            <option value="">📚 Choisissez un genre</option>
+            <option value=""> Choisissez un genre</option>
           </select>
           <select id="subCatSelect" class="w-full bg-indigo-50/50 border border-indigo-100 text-indigo-900 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer hidden">
-            <option value="">📂 Toutes les sous-catégories</option>
+            <option value="">Toutes les sous-catégories</option>
           </select>
         </div>
       </header>
@@ -27,7 +27,7 @@
 
       <div class="fixed bottom-4 w-full max-w-md z-20 flex justify-center pointer-events-none">
         <button id="openWishlist" class="pointer-events-auto bg-gray-700 text-white text-sm font-medium py-2 px-6 rounded-full shadow-md hover:bg-gray-800 hover:-translate-y-0.5 transition-all duration-300">
-          🎁 Wishlist
+          Bientôt en rayon
         </button>
       </div>
     </div>
@@ -35,7 +35,7 @@
     <div id="wishlistModal" class="fixed inset-0 bg-gray-900/60 hidden z-50 flex-col items-center justify-end">
       <div class="bg-gray-50 w-full max-w-md h-[85vh] rounded-t-3xl flex flex-col shadow-2xl transform transition-transform translate-y-full" id="wishlistContent">
         <div class="p-5 border-b border-gray-200 bg-white rounded-t-3xl flex justify-between items-center sticky top-0">
-          <h2 class="text-lg font-bold">🎁 Wishlist par Budget</h2>
+          <h2 class="text-lg font-bold"></h2>
           <button id="closeWishlist" class="text-gray-400 hover:text-gray-800 text-3xl leading-none">&times;</button>
         </div>
         
