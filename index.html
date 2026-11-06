@@ -61,12 +61,17 @@
     </style>
 
     <script>
-      // Ajout d'un système pour forcer le rafraîchissement des données (contournement du cache Google)
-    var SHEET_URL = "https://docs.google.com/spreadsheets/d/1cTDScC1_ztdHHUwurCl_NsVifS46VDQJaChsyuGvrqU/gviz/tq?tqx=out:json&sheet=Wishlist&headers=1&range=A:G";
-    var FETCH_URL = SHEET_URL + "&bypass=" + new Date().getTime();
-
+      var SHEET_ID = "1cTDScC1_ztdHHUwurCl_NsVifS46VDQJaChsyuGvrqU";
+      var TIMESTAMP = new Date().getTime();
       
-      var allBooks = [];
+      // Lien 1 : Bibliothèque principale (sans spécifier d'onglet, prend le premier par défaut)
+      var LIBRARY_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&bypass=" + TIMESTAMP;
+      // Lien 2 : Wishlist (ciblée spécifiquement)
+      var WISHLIST_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=Wishlist&headers=1&range=A:G&bypass=" + TIMESTAMP;
+      
+      var allBooks = [];       // Contient la bibliothèque
+      var wishlistBooks = [];  // Contient la wishlist
+      
       var bookListEl = document.getElementById('bookList');
       var genreSelect = document.getElementById('genreSelect');
       var subCatSelect = document.getElementById('subCatSelect');
@@ -78,74 +83,51 @@
       var wishlistResults = document.getElementById('wishlistResults');
       var budgetBtns = document.querySelectorAll('.budget-btn');
 
-      fetch(FETCH_URL)
+      // Fonction générique pour lire les lignes Google Sheets
+      function parseSheetData(data) {
+        return data.table.rows.map(function(row, index) {
+          var cells = row.c || [];
+          var prixTrouve = 0;
+          if (cells[6] && cells[6].v != null) {
+            var str = cells[6].v.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
+            prixTrouve = parseFloat(str) || 0;
+          }
+          return {
+            id: index,
+            titre: cells[0]?.v?.toString().trim() || '',
+            auteur: cells[1]?.v?.toString().trim() || 'Auteur inconnu',
+            genre: cells[2]?.v?.toString().trim() || '',
+            sous_categorie: cells[3]?.v?.toString().trim() || '',
+            editeur: cells[4]?.v?.toString().trim() || '',
+            format: cells[5]?.v?.toString().trim() || '', 
+            prix: prixTrouve
+          };
+        }).filter(function(b) { 
+          return b.titre !== '' && b.titre.toLowerCase() !== 'titre'; 
+        });
+      }
+
+      // 1. Chargement de la Bibliothèque
+      fetch(LIBRARY_URL)
         .then(function(res) { return res.text(); })
         .then(function(text) {
           var match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
-          if (!match) throw new Error("Format de réponse invalide");
+          allBooks = parseSheetData(JSON.parse(match[1]));
           
-          var data = JSON.parse(match[1]);
-          
-          // --- DETECTION BLINDÉE DES EN-TÊTES ---
-          var headers = [];
-          var startIndex = 0;
-          
-          // 1. Cherche dans les colonnes officielles
-          if (data.table.cols && data.table.cols[0] && data.table.cols[0].label !== '') {
-            headers = data.table.cols.map(function(c) { return c ? c.label : ''; });
-          } 
-          // 2. Si Google Sheets a caché les en-têtes dans la première ligne du tableau !
-          else if (data.table.rows.length > 0) {
-            headers = data.table.rows[0].c.map(function(c) { return (c && c.v) ? c.v.toString() : ''; });
-            startIndex = 1; // On dit au code de commencer à lire les livres à partir de la ligne 2
-          }
-
-          var indexPrix = -1;
-          for (var i = 0; i < headers.length; i++) {
-            if (headers[i].toLowerCase().includes('prix')) {
-              indexPrix = i;
-              break;
-            }
-          }
-
-          // --- LECTURE DES LIVRES ---
-          for (var i = startIndex; i < data.table.rows.length; i++) {
-            var cells = data.table.rows[i].c || [];
-            var titre = cells[0]?.v?.toString().trim() || '';
-            
-            // On ignore les lignes vides ou les en-têtes restants
-            if (titre === '' || titre.toLowerCase() === 'titre') continue;
-
-            var prixTrouve = 0;
-            // On lit le prix grâce à l'index trouvé de manière sécurisée
-            if (indexPrix !== -1 && cells[indexPrix] && cells[indexPrix].v != null) {
-              var str = cells[indexPrix].v.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
-              prixTrouve = parseFloat(str) || 0;
-            }
-
-            allBooks.push({
-              id: i,
-              titre: titre,
-              auteur: cells[1]?.v?.toString().trim() || 'Auteur inconnu',
-              genre: cells[2]?.v?.toString().trim() || '',
-              sous_categorie: cells[3]?.v?.toString().trim() || '',
-              editeur: cells[4]?.v?.toString().trim() || '',
-              format: cells[5]?.v?.toString().trim() || '', 
-              prix: prixTrouve
-            });
-          }
-
-          // Affichage final
           if (allBooks.length > 0) {
             populateGenres();
             renderBooks();
           } else {
-            bookListEl.innerHTML = '<div class="text-center py-12 text-gray-500">Aucun livre trouvé dans le document.</div>';
+            bookListEl.innerHTML = '<div class="text-center py-12 text-gray-500">Aucun livre trouvé dans la bibliothèque.</div>';
           }
-        })
-        .catch(function(err) {
-          console.error(err);
-          bookListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur lors du chargement des données.</div>';
+        });
+
+      // 2. Chargement de la Wishlist en arrière-plan
+      fetch(WISHLIST_URL)
+        .then(function(res) { return res.text(); })
+        .then(function(text) {
+          var match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
+          wishlistBooks = parseSheetData(JSON.parse(match[1]));
         });
 
       function populateGenres() {
@@ -231,6 +213,7 @@
           return;
         }
 
+        // On affiche les livres de 'allBooks' (Bibliothèque)
         var filtered = allBooks.filter(function(b) {
           var mGenre = selGenre ? b.genre === selGenre : true;
           var mSubCat = selSubCat ? b.sous_categorie === selSubCat : true;
@@ -294,7 +277,8 @@
           var maxPrice = this.getAttribute('data-max') ? parseFloat(this.getAttribute('data-max')) : null;
           var minPrice = this.getAttribute('data-min') ? parseFloat(this.getAttribute('data-min')) : null;
 
-          var filtered = allBooks.filter(function(b) {
+          // On filtre les livres de 'wishlistBooks' (Wishlist) et non plus la bibliothèque
+          var filtered = wishlistBooks.filter(function(b) {
             if (b.prix === 0) return false; 
             if (minPrice !== null && b.prix <= minPrice) return false; 
             if (maxPrice !== null && b.prix > maxPrice) return false;
