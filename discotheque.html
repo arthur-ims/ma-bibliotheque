@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Ma Discothèque</title>
+  </head>
+  <body class="bg-gray-100 text-gray-900 font-sans antialiased relative">
+    <div id="app" class="min-h-screen bg-gray-100 max-w-md mx-auto shadow-2xl min-w-[320px] flex flex-col relative pb-6">
+      <header class="sticky top-0 bg-white border-b border-gray-200 px-5 py-4 z-20 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h1 class="text-xl font-bold tracking-tight">Ma Discothèque</h1>
+          <a href="index.html" class="text-xs font-semibold bg-gray-100 hover:bg-indigo-50 text-gray-700 hover:text-indigo-700 px-3 py-1.5 rounded-full transition-colors">
+            📚 Bibliothèque →
+          </a>
+        </div>
+        
+        <div class="mt-4 space-y-2.5">
+          <select id="supportSelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+            <option value="">💿 Tous les supports</option>
+          </select>
+          <select id="genreSelect" class="w-full bg-indigo-50/50 border border-indigo-100 text-indigo-900 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+            <option value="">🎵 Tous les genres</option>
+          </select>
+        </div>
+      </header>
+
+      <main id="albumList" class="p-4 flex-1 space-y-3 overflow-y-auto">
+        <div class="text-center py-12 text-gray-400 text-sm">Connexion à Google Sheets...</div>
+      </main>
+    </div>
+
+    <script>
+      var SHEET_ID = "1n5tg3-_rxpBXDeEtiqtlxs_xkZi-e90koJrQE4n-DmA";
+      var LIBRARY_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&bypass=" + new Date().getTime();
+      
+      var allAlbums = [];
+      var albumListEl = document.getElementById('albumList');
+      var supportSelect = document.getElementById('supportSelect');
+      var genreSelect = document.getElementById('genreSelect');
+
+      fetch(LIBRARY_URL)
+        .then(function(res) { return res.text(); })
+        .then(function(text) {
+          var match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
+          if (!match) throw new Error("Format invalide");
+          
+          var data = JSON.parse(match[1]);
+          allAlbums = data.table.rows.map(function(row, index) {
+            var cells = row.c || [];
+            return {
+              id: index,
+              nom: cells[0]?.v?.toString().trim() || '',
+              artiste: cells[1]?.v?.toString().trim() || 'Artiste inconnu',
+              genre: cells[2]?.v?.toString().trim() || '',
+              support: cells[3]?.v?.toString().trim() || ''
+            };
+          }).filter(function(a) { 
+            return a.nom !== '' && a.nom.toLowerCase() !== 'nom'; 
+          });
+          
+          if (allAlbums.length > 0) {
+            populateFilters();
+            renderAlbums();
+          } else {
+            albumListEl.innerHTML = '<div class="text-center py-12 text-gray-500">Aucun album trouvé dans le tableau.</div>';
+          }
+        })
+        .catch(function(err) {
+          console.error(err);
+          albumListEl.innerHTML = '<div class="text-center py-12 text-rose-500 text-sm font-medium">❌ Erreur de connexion au Google Sheet.</div>';
+        });
+
+      function populateFilters() {
+        var supports = [...new Set(allAlbums.map(function(a) { return a.support; }))].filter(Boolean).sort();
+        supportSelect.innerHTML = '<option value="">💿 Tous les supports</option>';
+        supports.forEach(function(s) {
+          var opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = s;
+          supportSelect.appendChild(opt);
+        });
+
+        var genres = [...new Set(allAlbums.map(function(a) { return a.genre; }))].filter(Boolean).sort();
+        genreSelect.innerHTML = '<option value="">🎵 Tous les genres</option>';
+        genres.forEach(function(g) {
+          var opt = document.createElement('option');
+          opt.value = g;
+          opt.textContent = g;
+          genreSelect.appendChild(opt);
+        });
+      }
+
+      function getSupportBadge(support) {
+        if (!support) return '';
+        var lower = support.toLowerCase();
+        var colors = 'bg-gray-100 text-gray-600';
+        if (lower.includes('cd')) colors = 'bg-emerald-100 text-emerald-700';
+        else if (lower.includes('vinyle')) colors = 'bg-sky-100 text-sky-700';
+        return '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ' + colors + '">' + support + '</span>';
+      }
+
+      function generateAlbumHTML(a) {
+        var html = '<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-indigo-100 cursor-default">';
+        html += '  <div class="flex flex-wrap gap-1.5 items-center">';
+        if (a.genre) {
+          html += '    <span class="inline-block text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded">' + a.genre + '</span>';
+        }
+        html += getSupportBadge(a.support);
+        html += '  </div>';
+        html += '  <h3 class="font-bold text-gray-800 text-base leading-snug">' + a.nom + '</h3>';
+        if (a.artiste !== 'Artiste inconnu' && a.artiste !== '') {
+          html += '  <p class="text-xs text-gray-500 font-medium">par ' + a.artiste + '</p>';
+        }
+        html += '</div>';
+        return html;
+      }
+
+      function renderAlbums() {
+        var selSupport = supportSelect.value;
+        var selGenre = genreSelect.value;
+
+        var filtered = allAlbums.filter(function(a) {
+          var mSupport = selSupport ? a.support === selSupport : true;
+          var mGenre = selGenre ? a.genre === selGenre : true;
+          return mSupport && mGenre;
+        });
+
+        filtered.sort(function(a, b) {
+          var artA = (a.artiste || "").toLowerCase();
+          var artB = (b.artiste || "").toLowerCase();
+          if (artA < artB) return -1;
+          if (artA > artB) return 1;
+          var nomA = (a.nom || "").toLowerCase();
+          var nomB = (b.nom || "").toLowerCase();
+          if (nomA < nomB) return -1;
+          if (nomA > nomB) return 1;
+          return 0;
+        });
+
+        if (filtered.length === 0) {
+          albumListEl.innerHTML = '<div class="text-center py-12 text-gray-400 text-sm bg-white rounded-3xl border border-dashed p-6">Aucun album trouvé.</div>';
+          return;
+        }
+
+        var html = "";
+        filtered.forEach(function(a) { html += generateAlbumHTML(a); });
+        albumListEl.innerHTML = html;
+      }
+
+      supportSelect.addEventListener('change', renderAlbums);
+      genreSelect.addEventListener('change', renderAlbums);
+    </script>
+  </body>
+</html>
